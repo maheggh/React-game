@@ -1,11 +1,8 @@
-// components/AssassinationPage.jsx
-
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
 const AssassinationPage = () => {
   const { user, money, updateUserData, isAlive, setIsAlive, kills } = useContext(AuthContext);
-
   const [targets, setTargets] = useState([]);
   const [selectedTarget, setSelectedTarget] = useState(null);
   const [weapons, setWeapons] = useState([]);
@@ -18,44 +15,39 @@ const AssassinationPage = () => {
   const [scenarioImage, setScenarioImage] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const [bulletsUsed, setBulletsUsed] = useState(1);
-
-  const COOLDOWN_TIME = 1 * 60 * 1000; // 1 minute in milliseconds
-
+  const COOLDOWN_TIME = 1 * 60 * 1000;
   const bossItemStats = {
     'Presidential Medal': {
-      description:
-        "Increases XP gain by 30% and increases assassination success by 40%. You receive 75% of your opponent's money.",
+      description: "Increases XP gain by 30% and increases assassination success by 40%. You receive 75% of your opponent's money."
     },
     "Dragon's Hoard": {
-      description: "Receive 100% of your opponent's money.",
+      description: "Receive 100% of your opponent's money."
     },
     'Mafia Ring': {
-      description:
-        'Increases assassination success rate by 300% but makes you ten times as vulnerable to retaliation.',
+      description: 'Increases assassination success rate by 300% but makes you ten times as vulnerable to retaliation.'
     },
     'Invisible Cloak': {
-      description: 'Makes you immune to retaliation and allows you to use bullets for free.',
+      description: 'Makes you immune to retaliation and allows you to use bullets for free.'
     },
     "Pirate's Compass": {
-      description: "Grants 75% of your opponent's money.",
+      description: "Grants 75% of your opponent's money."
     },
     'Golden Spatula': {
-      description: 'Increases XP gain by 200%.',
+      description: 'Increases XP gain by 200%.'
     },
     'Star Dust': {
-      description: 'Grants an additional 3000 XP upon a successful assassination.',
+      description: 'Grants an additional 3000 XP upon a successful assassination.'
     },
     "Sheriff's Badge": {
-      description:
-        'Reduces the target’s chance to retaliate by 50% and increases assassination success rate by 10%.',
-    },
+      description: 'Reduces the target’s chance to retaliate by 50% and increases assassination success rate by 10%.'
+    }
   };
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await fetch('/api/users/profile', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         const data = await response.json();
         if (data.success) {
@@ -66,7 +58,6 @@ const AssassinationPage = () => {
           setErrorMessage(data.message || 'Failed to fetch user data.');
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
         setErrorMessage('Server error occurred.');
       }
     };
@@ -77,9 +68,8 @@ const AssassinationPage = () => {
     const fetchTargets = async () => {
       try {
         const response = await fetch('/api/users/targets', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-
         if (response.ok) {
           const data = await response.json();
           setTargets(data.targets);
@@ -87,7 +77,6 @@ const AssassinationPage = () => {
           setErrorMessage('Failed to fetch targets.');
         }
       } catch (error) {
-        console.error('Error fetching targets:', error);
         setErrorMessage('Server error occurred while fetching targets.');
       }
     };
@@ -119,46 +108,39 @@ const AssassinationPage = () => {
     setResultMessage('');
     setErrorMessage('');
     setIsLoading(true);
-
     if (cooldown > 0) {
       setErrorMessage(`Please wait ${Math.ceil(cooldown / 60000)} minutes before your next attempt.`);
       setIsLoading(false);
       return;
     }
-
     if (!selectedTarget || !selectedWeapon) {
       setErrorMessage('You must select a target and a weapon.');
       setIsLoading(false);
       return;
     }
-
     if (bulletsUsed < 1 || bulletsUsed > 1000) {
       setErrorMessage('Bullets used must be between 1 and 1000.');
       setIsLoading(false);
       return;
     }
-
     try {
       const response = await fetch('/api/assassination/attempt', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           targetId: selectedTarget._id,
           weaponName: selectedWeapon.name,
           bossItemName: selectedBossItem?.name || null,
-          bulletsUsed: bulletsUsed,
-        }),
+          bulletsUsed: bulletsUsed
+        })
       });
-
       const data = await response.json();
-
       if (response.ok && data.success) {
         const newMoney = money - data.actualBulletCost + (data.lootMoney || 0);
         updateUserData({ money: newMoney, kills: data.updatedKills });
-
         setResultMessage(data.message);
         setScenarioImage('/assets/success.png');
         localStorage.setItem('lastAssassinationAttempt', new Date());
@@ -166,13 +148,11 @@ const AssassinationPage = () => {
       } else {
         setErrorMessage(data.message || 'Assassination attempt failed.');
         setScenarioImage('/assets/failure.png');
-
         if (data.userDied) {
           setIsAlive(false);
         }
       }
     } catch (error) {
-      console.error('Error during assassination attempt:', error);
       setErrorMessage('Server error occurred during assassination.');
       setScenarioImage('/assets/error.png');
     } finally {
@@ -192,9 +172,7 @@ const AssassinationPage = () => {
           Your Assassination Count: <span className="font-bold text-green-400">{kills}</span>
         </p>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        {/* Target Selection */}
         <div className="p-4 bg-gray-800 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold mb-2 text-gray-200">Select Target</h2>
           <select
@@ -213,8 +191,6 @@ const AssassinationPage = () => {
             ))}
           </select>
         </div>
-
-        {/* Weapon Selection */}
         <div className="p-4 bg-gray-800 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold mb-2 text-gray-200">Select Weapon</h2>
           <div className="flex flex-wrap">
@@ -237,8 +213,6 @@ const AssassinationPage = () => {
             ))}
           </div>
         </div>
-
-        {/* Boss Item Selection */}
         <div className="p-4 bg-gray-800 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold mb-2 text-gray-200">Select Boss Item (Optional)</h2>
           <div className="flex flex-wrap">
@@ -260,15 +234,12 @@ const AssassinationPage = () => {
               </div>
             ))}
           </div>
-
           {selectedBossItem && (
             <p className="text-gray-400 mt-2">
               {bossItemStats[selectedBossItem.name]?.description || 'No special stats'}
             </p>
           )}
         </div>
-
-        {/* Bullets Input */}
         <div className="p-4 bg-gray-800 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold mb-2 text-gray-200">Bullets to Use</h2>
           <input
@@ -281,7 +252,6 @@ const AssassinationPage = () => {
           />
         </div>
       </div>
-
       {resultMessage && (
         <p className="text-green-400 text-center text-lg mb-4 p-3 bg-gray-700 rounded-md">
           {resultMessage}
@@ -292,13 +262,11 @@ const AssassinationPage = () => {
           <img src={scenarioImage} alt="Assassination Scenario" className="w-1/2 h-auto rounded-md shadow-md" />
         </div>
       )}
-
       {cooldown > 0 && (
         <p className="text-center text-red-500 mb-4">
           Next attempt available in: {Math.ceil(cooldown / 60000)} minutes
         </p>
       )}
-
       <div className="flex justify-center">
         <button
           onClick={attemptAssassination}

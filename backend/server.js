@@ -18,6 +18,7 @@ const inventoryRoutes = require('./routes/inventoryRoutes');
 const assassinationRoutes = require('./routes/assassinationRoutes');
 const gamblingRoutes = require('./routes/gamblingRoutes');
 const playerRoutes = require('./routes/playerRoutes');
+const bossRoutes = require('./routes/bossRoutes');
 
 const app = express();
 
@@ -27,7 +28,7 @@ app.use(express.json());
 const registrationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message: { success: false, message: 'Too many accounts created from this IP, please try again later.' },
+  message: { success: false, message: 'Too many accounts created.' },
 });
 app.use('/api/users/register', registrationLimiter);
 
@@ -42,16 +43,15 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/assassination', assassinationRoutes);
 app.use('/api/spin', gamblingRoutes);
 app.use('/api/players', playerRoutes);
+app.use('/api/bosses', bossRoutes);
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch((err) => {
-  console.error('MongoDB connection error:', err);
-  process.exit(1);
-});
+mongoose
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
